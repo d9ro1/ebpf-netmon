@@ -20,18 +20,25 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang llvm libbpf-dev
-          # The linux-tools-generic bpftool is a wrapper that only works if a
-          # linux-tools-<exact-kernel-version> package exists for the runner's
-          # kernel flavour (often not the case for -azure kernels). The
-          # standalone `bpftool` package ships a real binary, no wrapper.
-          sudo apt-get install -y bpftool
+
+      - name: Install bpftool (static release binary)
+        run: |
+          # apt's bpftool is a wrapper tied to an exact linux-tools-<kernel
+          # version> package that often doesn't exist for the runner's kernel
+          # flavour (e.g. -azure). The upstream static release binary has no
+          # such dependency.
+          URL=$(curl -s https://api.github.com/repos/libbpf/bpftool/releases/latest \
+            | grep browser_download_url | grep -i 'amd64\.tar\.gz' | head -1 | cut -d '"' -f4)
+          echo "Downloading $URL"
+          curl -sL "$URL" -o bpftool.tar.gz
+          tar -xzf bpftool.tar.gz
+          sudo install -m 0755 bpftool /usr/local/bin/bpftool
+          bpftool version
 
       - name: Generate vmlinux.h and headers
         run: |
           mkdir -p bpf/headers/bpf
-          BPFTOOL=$(command -v bpftool || find /usr/lib/linux-tools* -name bpftool 2>/dev/null | head -1)
-          echo "Using bpftool: $BPFTOOL"
-          "$BPFTOOL" btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
+          bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
           cp /usr/include/bpf/bpf_helpers.h /usr/include/bpf/bpf_tracing.h bpf/headers/bpf/
 
       - name: go mod tidy
