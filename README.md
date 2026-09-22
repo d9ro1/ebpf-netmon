@@ -31,7 +31,7 @@ instrumentation required.
     sudo apt-get update && sudo apt-get install -y clang llvm libbpf-dev linux-tools-common linux-tools-generic
     mkdir -p bpf/headers/bpf
     bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
-    cp /usr/include/bpf/bpf_helpers.h /usr/include/bpf/bpf_tracing.h bpf/headers/bpf/
+    cp /usr/include/bpf/*.h bpf/headers/bpf/
     go mod tidy   # fetches cilium/ebpf and client_golang, generates go.sum
 
 ## Build & run

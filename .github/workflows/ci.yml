@@ -39,7 +39,10 @@ jobs:
         run: |
           mkdir -p bpf/headers/bpf
           bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
-          cp /usr/include/bpf/bpf_helpers.h /usr/include/bpf/bpf_tracing.h bpf/headers/bpf/
+          # Copy the whole libbpf-dev header set (bpf_helpers.h pulls in
+          # bpf_helper_defs.h, generated at package-install time, and other
+          # local headers — cherry-picking individual files misses those).
+          cp /usr/include/bpf/*.h bpf/headers/bpf/
 
       - name: go mod tidy
         run: go mod tidy
