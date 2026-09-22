@@ -20,8 +20,8 @@ func NewBPFMapReader(m *ebpf.Map) *BPFMapReader {
 func (r *BPFMapReader) Iterate() ([]collector.Entry, error) {
 	var (
 		entries []collector.Entry
-		key     bpf.ConnKey
-		val     bpf.ConnStats
+		key     bpf.TcpprobesConnKey
+		val     bpf.TcpprobesConnStats
 	)
 	it := r.m.Iterate()
 	for it.Next(&key, &val) {
@@ -40,7 +40,7 @@ func (r *BPFMapReader) Iterate() ([]collector.Entry, error) {
 }
 
 func (r *BPFMapReader) Delete(key collector.ConnKey) error {
-	bpfKey := bpf.ConnKey{
+	bpfKey := bpf.TcpprobesConnKey{
 		Pid: key.PID, Saddr: key.SAddr, Daddr: key.DAddr,
 		Sport: key.SPort, Dport: key.DPort,
 	}
