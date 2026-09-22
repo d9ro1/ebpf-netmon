@@ -50,6 +50,9 @@ jobs:
       - name: Generate BPF Go bindings
         run: make generate
 
+      - name: Debug generated bindings
+        run: grep -n "^type\|^func Load" bpf/tcpprobes_x86_bpfel.go
+
       - name: Build agent
         run: make build
 
