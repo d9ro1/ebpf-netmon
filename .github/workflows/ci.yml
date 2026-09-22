@@ -19,13 +19,19 @@ jobs:
       - name: Install BPF toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang llvm libbpf-dev linux-tools-common linux-tools-generic linux-tools-$(uname -r) || \
-          sudo apt-get install -y clang llvm libbpf-dev linux-tools-common linux-tools-generic
+          sudo apt-get install -y clang llvm libbpf-dev
+          # The linux-tools-generic bpftool is a wrapper that only works if a
+          # linux-tools-<exact-kernel-version> package exists for the runner's
+          # kernel flavour (often not the case for -azure kernels). The
+          # standalone `bpftool` package ships a real binary, no wrapper.
+          sudo apt-get install -y bpftool
 
       - name: Generate vmlinux.h and headers
         run: |
           mkdir -p bpf/headers/bpf
-          bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
+          BPFTOOL=$(command -v bpftool || find /usr/lib/linux-tools* -name bpftool 2>/dev/null | head -1)
+          echo "Using bpftool: $BPFTOOL"
+          "$BPFTOOL" btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
           cp /usr/include/bpf/bpf_helpers.h /usr/include/bpf/bpf_tracing.h bpf/headers/bpf/
 
       - name: go mod tidy
