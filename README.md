@@ -1,5 +1,7 @@
 # ebpf-netmon
 
+[![CI](https://github.com/d9ro1/ebpf-netmon/actions/workflows/ci.yml/badge.svg)](https://github.com/d9ro1/ebpf-netmon/actions/workflows/ci.yml)
+
 Per-process TCP observability via eBPF: connection latency, retransmissions
 and throughput, exported as Prometheus metrics and visualized in Grafana.
 
@@ -28,7 +30,16 @@ instrumentation required.
 
 ## First-time setup (inside WSL2)
 
-    sudo apt-get update && sudo apt-get install -y clang llvm libbpf-dev linux-tools-common linux-tools-generic
+    sudo apt-get update && sudo apt-get install -y clang llvm libbpf-dev
+
+    # Install bpftool from the upstream static release, not apt: the apt
+    # package is a wrapper tied to an exact linux-tools-<kernel-version>
+    # package that frequently doesn't exist for your exact kernel build.
+    URL=$(curl -s https://api.github.com/repos/libbpf/bpftool/releases/latest \
+      | grep browser_download_url | grep -i 'amd64\.tar\.gz' | head -1 | cut -d '"' -f4)
+    curl -sL "$URL" -o bpftool.tar.gz && tar -xzf bpftool.tar.gz
+    sudo install -m 0755 bpftool /usr/local/bin/bpftool
+
     mkdir -p bpf/headers/bpf
     bpftool btf dump file /sys/kernel/btf/vmlinux format c > bpf/vmlinux.h
     cp /usr/include/bpf/*.h bpf/headers/bpf/
@@ -48,17 +59,22 @@ The `netmon` dashboard is provisioned automatically in Grafana.
 
 ## Testing
 
-    make test                                    # unit tests (no kernel needed)
-    ./test/integration/run_integration_test.sh   # integration test (needs root, Linux)
+    make test                                     # unit tests (no kernel needed)
+    bash ./test/integration/run_integration_test.sh   # integration test (needs root, Linux)
 
 ## Status
 
-Code for the full MVP (eBPF probes, Go agent, Prometheus/Grafana stack) is
-written and committed, but has **not been compiled or run** on this
-machine: neither Go, clang, nor a working WSL2 install were present at
-write time. Before trusting this as working software, follow "First-time
-setup" and "Build & run" above and confirm `make test`, `make build`, and
-the integration test all pass.
+Verified working end-to-end by CI (see badge above): every push builds the
+BPF probes, builds the Go agent, runs the unit tests, and runs the
+integration test (loads the real kprobes on the runner's kernel, generates
+known TCP traffic, and checks the resulting Prometheus metrics).
+
+This was built and debugged entirely through that CI loop: the dev machine
+this was written on has no Go, clang, or working WSL2 install, so local
+compilation was never possible here. If you're setting it up locally
+(inside WSL2 or any Linux box), follow "First-time setup" and "Build & run"
+above — CI passing is strong evidence it'll work, but it's not a substitute
+for running it yourself once.
 
 ## Scope
 
