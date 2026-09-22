@@ -1,8 +1,7 @@
 .PHONY: generate build test up down
 
 generate:
-	cd bpf && go run github.com/cilium/ebpf/cmd/bpf2go -cc clang -cflags "-O2 -g -Wall" \
-		-target amd64 tcpprobes ./tcp_probes.c -- -I./headers
+	go generate ./bpf/...
 
 build: generate
 	go build -o agent/bin/netmon ./agent
