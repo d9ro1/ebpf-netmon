@@ -71,7 +71,7 @@ func main() {
 		}
 	}()
 
-	reader := bpfreader.NewBPFMapReader(objs.ConnStats)
+	reader := bpfreader.NewBPFMapReader(objs.ConnStatsMap)
 	resolver := procresolve.NewResolver()
 	coll := collector.NewCollector(reader, resolver)
 	m := metrics.NewMetrics()

@@ -28,7 +28,7 @@ struct {
     __uint(max_entries, 8192);
     __type(key, struct conn_key);
     __type(value, struct conn_stats);
-} conn_stats SEC(".maps");
+} conn_stats_map SEC(".maps");
 
 // Maps a live `struct sock *` to the PID that owns it, set at connect time
 // and read by sendmsg/recvmsg/retransmit probes that only get the sock.
@@ -78,7 +78,7 @@ int BPF_KPROBE(trace_tcp_close, struct sock *sk) {
     struct conn_key key = {};
     fill_key_from_sock(&key, sk, *pid);
 
-    struct conn_stats *stats = bpf_map_lookup_elem(&conn_stats, &key);
+    struct conn_stats *stats = bpf_map_lookup_elem(&conn_stats_map, &key);
     if (stats && start_ts) {
         stats->connect_latency_ns = bpf_ktime_get_ns() - *start_ts;
     }
@@ -99,10 +99,10 @@ int BPF_KPROBE(trace_tcp_retransmit_skb, struct sock *sk) {
     fill_key_from_sock(&key, sk, *pid);
 
     struct conn_stats zero = {};
-    struct conn_stats *stats = bpf_map_lookup_elem(&conn_stats, &key);
+    struct conn_stats *stats = bpf_map_lookup_elem(&conn_stats_map, &key);
     if (!stats) {
-        bpf_map_update_elem(&conn_stats, &key, &zero, BPF_NOEXIST);
-        stats = bpf_map_lookup_elem(&conn_stats, &key);
+        bpf_map_update_elem(&conn_stats_map, &key, &zero, BPF_NOEXIST);
+        stats = bpf_map_lookup_elem(&conn_stats_map, &key);
         if (!stats)
             return 0;
     }
@@ -121,10 +121,10 @@ int BPF_KPROBE(trace_tcp_sendmsg, struct sock *sk, struct msghdr *msg, size_t si
     fill_key_from_sock(&key, sk, *pid);
 
     struct conn_stats zero = {};
-    struct conn_stats *stats = bpf_map_lookup_elem(&conn_stats, &key);
+    struct conn_stats *stats = bpf_map_lookup_elem(&conn_stats_map, &key);
     if (!stats) {
-        bpf_map_update_elem(&conn_stats, &key, &zero, BPF_NOEXIST);
-        stats = bpf_map_lookup_elem(&conn_stats, &key);
+        bpf_map_update_elem(&conn_stats_map, &key, &zero, BPF_NOEXIST);
+        stats = bpf_map_lookup_elem(&conn_stats_map, &key);
         if (!stats)
             return 0;
     }
@@ -150,10 +150,10 @@ int BPF_KPROBE(trace_tcp_recvmsg, struct sock *sk, int copied) {
     fill_key_from_sock(&key, sk, *pid);
 
     struct conn_stats zero = {};
-    struct conn_stats *stats = bpf_map_lookup_elem(&conn_stats, &key);
+    struct conn_stats *stats = bpf_map_lookup_elem(&conn_stats_map, &key);
     if (!stats) {
-        bpf_map_update_elem(&conn_stats, &key, &zero, BPF_NOEXIST);
-        stats = bpf_map_lookup_elem(&conn_stats, &key);
+        bpf_map_update_elem(&conn_stats_map, &key, &zero, BPF_NOEXIST);
+        stats = bpf_map_lookup_elem(&conn_stats_map, &key);
         if (!stats)
             return 0;
     }
