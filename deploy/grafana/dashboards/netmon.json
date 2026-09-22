@@ -1,0 +1,38 @@
+{
+  "title": "ebpf-netmon",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "title": "Bytes sent by process",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "rate(netmon_bytes_sent_total[1m])", "legendFormat": "{{process}}" }
+      ]
+    },
+    {
+      "title": "Bytes received by process",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "rate(netmon_bytes_received_total[1m])", "legendFormat": "{{process}}" }
+      ]
+    },
+    {
+      "title": "Retransmissions by process",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "increase(netmon_retransmits_total[1m])", "legendFormat": "{{process}}" }
+      ]
+    },
+    {
+      "title": "Max connect latency by process",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "netmon_connect_latency_seconds", "legendFormat": "{{process}}" }
+      ]
+    }
+  ]
+}

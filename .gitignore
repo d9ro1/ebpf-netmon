@@ -1,0 +1,5 @@
+/agent/bin/
+*.o
+/deploy/grafana/data/
+/deploy/prometheus/data/
+/bpf/vmlinux.h
